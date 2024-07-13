@@ -119,3 +119,22 @@
 .button-js:hover {
   background-color: #3498db;
 }
+
+.load-more {
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+  margin-top: 20px;
+
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+.load-more:hover {
+  background-color: #0056b3;
+}

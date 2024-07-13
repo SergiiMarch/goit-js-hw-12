@@ -1,5 +1,5 @@
 import { fetchImages } from './js/pixabay-api';
-import { randomMarcup } from './js/render-functions';
+import { randomMarkup, clearDivEl } from './js/render-functions';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 import SimpleLightbox from 'simplelightbox';
@@ -8,13 +8,19 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 const buttonEl = document.querySelector('.button-js');
 const divEl = document.querySelector('.js-div');
 const inputEl = document.querySelector('.search-js');
+const loadMoreBtn = document.querySelector('.load-more');
+
 let lightbox;
+let currentPage = 1;
+let currentQuery = '';
+let totalHits = 0;
 
 buttonEl.addEventListener('click', onClick);
 
-function onClick(e) {
+async function onClick(e) {
   e.preventDefault();
   const query = inputEl.value.trim();
+  currentPage = 1;
 
   if (query === '') {
     iziToast.warning({
@@ -24,37 +30,58 @@ function onClick(e) {
     return;
   }
 
-  showLoader();
+  currentQuery = query;
 
-  fetchImages(query)
-    .then(images => {
-      hideLoader();
-      randomMarcup(images, divEl);
+  try {
+    const data = await fetchImages(currentQuery, currentPage);
+    totalHits = data.totalHits;
+    clearDivEl();
+    randomMarkup(data.hits);
+    if (data.hits.length < 15 || currentPage * 15 >= totalHits) {
+      loadMoreBtn.style.display = 'none';
+      iziToast.info({
+        title: 'Info',
+        message: "We're sorry, but you've reached the end of search results.",
+      });
+    } else {
+      loadMoreBtn.style.display = 'block';
+    }
 
-      if (!lightbox) {
-        lightbox = new SimpleLightbox('.gallery-item', {
-          captionsData: 'alt',
-          captionDelay: 250,
-        });
-      } else {
-        lightbox.refresh();
-      }
-    })
-    .catch(error => {
-      hideLoader();
-      console.log(error);
+    lightbox = new SimpleLightbox('.gallery-item', {
+      captionsData: 'alt',
+      captionDelay: 250,
     });
-}
-
-function showLoader() {
-  divEl.innerHTML = '<div class="loader"></div>';
-}
-
-function hideLoader() {
-  const loader = document.querySelector('.loader');
-  if (loader) {
-    loader.remove();
+  } catch (error) {
+    console.error('Error fetching and rendering images:', error);
   }
 }
+
+loadMoreBtn.addEventListener('click', async () => {
+  currentPage += 1;
+
+  try {
+    const data = await fetchImages(currentQuery, currentPage);
+    randomMarkup(data.hits);
+    if (currentPage * 15 >= totalHits) {
+      loadMoreBtn.style.display = 'none';
+      iziToast.info({
+        title: 'Info',
+        message: "We're sorry, but you've reached the end of search results.",
+      });
+    }
+
+    const { height: cardHeight } = document
+      .querySelector('.gallery')
+      .firstElementChild.getBoundingClientRect();
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
+
+    lightbox.refresh();
+  } catch (error) {
+    console.error('Error fetching and rendering images:', error);
+  }
+});
 
 export { divEl };
