@@ -19,10 +19,13 @@ buttonEl.addEventListener('click', onClick);
 
 async function onClick(e) {
   e.preventDefault();
+  clearDivEl();
+  loadMoreBtn.style.display = 'none';
   const query = inputEl.value.trim();
   currentPage = 1;
 
   if (query === '') {
+    loadMoreBtn.style.display = 'none';
     iziToast.warning({
       title: 'Warning',
       message: 'Please enter a search term',
@@ -35,8 +38,9 @@ async function onClick(e) {
   try {
     const data = await fetchImages(currentQuery, currentPage);
     totalHits = data.totalHits;
-    clearDivEl();
+
     randomMarkup(data.hits);
+
     if (data.hits.length < 15 || currentPage * 15 >= totalHits) {
       loadMoreBtn.style.display = 'none';
       iziToast.info({
@@ -61,6 +65,7 @@ loadMoreBtn.addEventListener('click', async () => {
 
   try {
     const data = await fetchImages(currentQuery, currentPage);
+
     randomMarkup(data.hits);
     if (currentPage * 15 >= totalHits) {
       loadMoreBtn.style.display = 'none';

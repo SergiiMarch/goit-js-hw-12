@@ -5,9 +5,8 @@ function clearDivEl() {
 }
 
 function randomMarkup(images) {
-  clearDivEl();
   let galleryMarkup = '';
-  images.forEach(image => {
+  images.map(image => {
     const galleryItem = `
       <div class="card">
         <a href="${image.largeImageURL}" class="gallery-item">
